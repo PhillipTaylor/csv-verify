@@ -1,6 +1,6 @@
 [package]
-name = "csv_merkle_png"
-version = "0.1.0"
+name = "csv-verify"
+version = "0.2.0"
 edition = "2021"
 
 [dependencies]
@@ -9,6 +9,7 @@ sha2 = "0.10"
 hex = "0.4"
 clap = { version = "4.5", features = ["derive"] }
 
-image = "=0.24.8"
+image = { version = "=0.24.8", default-features = false, features = ["png"] }
 imageproc = "=0.23.0"
+rusttype = "0.9"
 

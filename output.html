@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Merkle Tree</title>
+<style>
+  :root { --gap: 18px; --nodeW: 120px; --nodeH: 44px; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; background: #fff; color:#111; }
+  .container { display: flex; flex-direction: column; gap: 26px; }
+  .level { display: flex; justify-content: center; gap: var(--gap); flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; }
+  .node {
+    width: var(--nodeW);
+    height: var(--nodeH);
+    border: 1px solid #bbb;
+    border-radius: 10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 14px;
+    user-select: none;
+    background: #fafafa;
+    transition: background .12s, border-color .12s, box-shadow .12s, transform .12s;
+    box-sizing: border-box;
+  }
+  .node:hover { transform: translateY(-1px); border-color: #888; }
+  .node.active { background: #fff3bf; border-color: #d19a00; box-shadow: 0 0 0 2px rgba(209,154,0,0.20); }
+  .node.leaf { background: #f7fbff; }
+  .legend { font-size: 13px; color:#444; margin-bottom: 10px; line-height: 1.35; }
+  .rootLine { margin: 0 0 14px; font-size: 13px; color:#222; }
+  .rootHash { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+</style>
+</head>
+<body>
+<div class="rootLine"><strong>Merkle root:</strong> <span class="rootHash">3efd22a18045596ed876430e749ee96ab444a2d1a4b81cfa9ddff89c854cc8d3</span></div><div class="legend">
+Hover any node to highlight all descendant leaves that contribute to that hash (and any internal nodes fully contained in that leaf range).
+Leaf count: 6.
+</div><div class="container"><div class="level"><div class="node" id="n-L3-I0" data-lvl="3" data-idx="0" data-leaf-start="0" data-leaf-end="5" title="3efd22a18045596ed876430e749ee96ab444a2d1a4b81cfa9ddff89c854cc8d3">3efd22a180</div></div><div style="height:8px"></div><div class="level"><div class="node" id="n-L2-I0" data-lvl="2" data-idx="0" data-leaf-start="0" data-leaf-end="3" title="67cc83b26aad499f87d0b0d2b2230f8780954d371958ba1bbf727089e0b0ae1f">67cc83b26a</div><div class="node" id="n-L2-I1" data-lvl="2" data-idx="1" data-leaf-start="4" data-leaf-end="5" title="ebcd0a23e474a17f2ec37566c750aef0c0f268ebe1494eb1b1010da0a0bac584">ebcd0a23e4</div></div><div class="level"><div class="node" id="n-L1-I0" data-lvl="1" data-idx="0" data-leaf-start="0" data-leaf-end="1" title="3b3407f7d9c79a9607a8a251fc0e03e9cf090f80e64d806b72e3242615294170">3b3407f7d9</div><div class="node" id="n-L1-I1" data-lvl="1" data-idx="1" data-leaf-start="2" data-leaf-end="3" title="6a0c5febf66d783fd8e377e63308b5d9227a294adeda34a2ace1d3584890ab95">6a0c5febf6</div><div class="node" id="n-L1-I2" data-lvl="1" data-idx="2" data-leaf-start="4" data-leaf-end="5" title="045aea9c0c62ea1ea40902c088cc5b0036d7f137c2648acf297ac5c4daef590f">045aea9c0c</div></div><div class="level"><div class="node leaf" id="n-L0-I0" data-lvl="0" data-idx="0" data-leaf-start="0" data-leaf-end="0" title="3fc42b40c056f5738f145e099d3aa84cdd0ec4983c1d2d1feb49599fbda0fea4">3fc42b40c0</div><div class="node leaf" id="n-L0-I1" data-lvl="0" data-idx="1" data-leaf-start="1" data-leaf-end="1" title="551f748465bfa6e8d681877bb13655501d4913791b11664e0521b531e7bcf1fb">551f748465</div><div class="node leaf" id="n-L0-I2" data-lvl="0" data-idx="2" data-leaf-start="2" data-leaf-end="2" title="22e44daffce1da4fcb5e694691c53d17d08ffa44fe240b1cc5873f9d83d2516c">22e44daffc</div><div class="node leaf" id="n-L0-I3" data-lvl="0" data-idx="3" data-leaf-start="3" data-leaf-end="3" title="dcc58544720283adedf63b3075b73753b3b77f607d34b4a84b00b39c47622bf4">dcc5854472</div><div class="node leaf" id="n-L0-I4" data-lvl="0" data-idx="4" data-leaf-start="4" data-leaf-end="4" title="ababa955fa82153f94c52cacb00f5fbdd58b24b118da2130476c2842e505e5eb">ababa955fa</div><div class="node leaf" id="n-L0-I5" data-lvl="0" data-idx="5" data-leaf-start="5" data-leaf-end="5" title="c6a6219bd0f3bd75923c0ac24b16efc7c9cb565f54c7ad5fadcf1f90366b66d9">c6a6219bd0</div></div></div>
+<script>
+(function() {
+  const nodes = Array.from(document.querySelectorAll('.node'));
+
+  function clearActive() {
+    nodes.forEach(n => n.classList.remove('active'));
+  }
+
+  function activateRange(s, e) {
+    nodes.forEach(n => {
+      const ns = parseInt(n.dataset.leafStart, 10);
+      const ne = parseInt(n.dataset.leafEnd, 10);
+
+      // Leaf nodes: highlight if within range.
+      // Internal nodes: highlight if fully contained in range.
+      const isLeaf = n.classList.contains('leaf');
+      const inRange = isLeaf ? (ns >= s && ne <= e) : (ns >= s && ne <= e);
+
+      if (inRange) n.classList.add('active');
+    });
+  }
+
+  nodes.forEach(n => {
+    n.addEventListener('mouseenter', () => {
+      const s = parseInt(n.dataset.leafStart, 10);
+      const e = parseInt(n.dataset.leafEnd, 10);
+      clearActive();
+      activateRange(s, e);
+    });
+  });
+
+  document.body.addEventListener('mouseleave', () => clearActive());
+})();
+</script>
+</body>
+</html>
